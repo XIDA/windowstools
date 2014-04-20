@@ -1,0 +1,2 @@
+ToolY.exe
+C:\Program Files (x86)\ToolY\ToolY.exe
