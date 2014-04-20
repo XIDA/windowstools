@@ -17,5 +17,5 @@ the exe will then also send text like this:
 
 ###Additional settings for the url in sendWindowsStatusToUrl.ini###
 You can also add a few special parameters to the url:
-1. {datetime}: will add a string like this to the url 18.04.2014 17:21:50
-2. {random}: will add a random number between 11111 and 99999 to the url
+* {datetime}: will add a string like this to the url 18.04.2014 17:21:50
+* {random}: will add a random number between 11111 and 99999 to the url
