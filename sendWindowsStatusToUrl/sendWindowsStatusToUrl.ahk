@@ -171,7 +171,7 @@ sendText(cText) {
 	
 	StringReplace, cUrl, iniUrl, {text}, %cText%, All	
 	cUrl := replaceSpecialStrings(cUrl)
-	TrayTip,Url, %cUrl%
+	;T rayTip,Url, %cUrl%
 	httpQuery(result,cUrl)
 }
 
