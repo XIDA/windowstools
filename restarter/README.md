@@ -1,7 +1,9 @@
 restarter
 ============
 
-This tool will first kill the task of a specific program, then start the program again
+This tool will first kill the task of a specific program, then start the program again.
+
+Let's say you have a program called ToolY and from time to time it freezes. Then you open task manager, kill the task and then you start the program again. The restarter can do this for you.
 
 ###Install###
 1. Copy the restarter.exe and restarter.txt to your desired location
