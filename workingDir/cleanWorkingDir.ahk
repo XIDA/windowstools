@@ -42,15 +42,6 @@ Exit:
 	ExitApp
 return
 
-if(!A_IsCompiled) {
-	#y::
-		;ControlGetText, output , SysListView321, 
-		;ControlGet, output, Line, 1, SysListView321, - Notepad++
-		Send ^s
-		reload
-	return
-}
-
 MoveFilesAndFolders(SourcePattern, DestinationFolder, DoOverwrite = false)
 ; Moves all files and folders matching SourcePattern into the folder named DestinationFolder and
 ; returns the number of files/folders that could not be moved. This function requires v1.0.38+
