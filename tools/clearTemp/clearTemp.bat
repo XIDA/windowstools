@@ -1,3 +1,4 @@
+@echo off
 REM downloaded files
 del C:\Users\%USERNAME%\Downloads\*.* /F /S /Q
 
