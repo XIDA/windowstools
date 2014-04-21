@@ -7,7 +7,11 @@ If you have to work with a lot of different files every day and you place them a
 
 Your working directory:
 
-All files and folders will be placed here after running the tool:
+![Your working dir before](https://github.com/XIDA/windowstools/raw/master/help/workingDir/images/workingDir_01.png)
+
+All files and folders will be in a backup directory with the current date after running the tool:
+
+![You backup directory](https://github.com/XIDA/windowstools/raw/master/help/workingDir/images/workingDir_02.png)
 
 
 
