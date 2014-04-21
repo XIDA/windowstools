@@ -1,0 +1,15 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\*\shell\Extract to Working]
+@="Extract / Copy to Working"
+
+[HKEY_CLASSES_ROOT\*\shell\Extract to Working\command]
+@="{currentfolder}\\extractToWorking.exe \"%1\""
+
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\Extract / Copy to Working]
+@="Extract / Copy to Working
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\Extract / Copy to Working\command]
+@="{currentfolder}\\extractToWorking.exe"
+
