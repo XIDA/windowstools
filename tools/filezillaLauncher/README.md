@@ -14,11 +14,10 @@ Adds a menu to the tray to quickly launch your most important FileZilla FTP Conn
 	**So your ini file might look like this**
 
 
-	`sitemanagerPath="C:\Users\xida\AppData\Roaming\FileZilla\sitemanager.xml"
-
-
-	filezillaExe="C:\Program Files (x86)\FileZilla FTP Client\filezilla.exe"
-	`
+	    sitemanagerPath="C:\Users\xida\AppData\Roaming\FileZilla\sitemanager.xml"    
+    
+    	filezillaExe="C:\Program Files (x86)\FileZilla FTP Client\filezilla.exe"
+	
 	
 2. launch the .exe file and you will find it in the tray
 
