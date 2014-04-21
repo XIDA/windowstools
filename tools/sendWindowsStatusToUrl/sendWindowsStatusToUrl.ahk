@@ -13,25 +13,27 @@ Menu, Tray, Icon, sendWindowsStatusToUrl.ico
 
 	_startPosted 	:= 0
 	_shutdownPosted := 0
-	_scriptName		:= ScriptNameNoExt()
+	
+	INI_FILE := iniFile()
+	;M sgBox, %INI_FILE%
 
-	IniRead, iniUrl, %_scriptName%.ini, general, url
+	IniRead, iniUrl, %INI_FILE%, general, url
 	cLength := StrLen(iniUrl)
 	if(cLength = 0) {
 		MsgBox, Url is empty!
 		ExitApp
 	}
 
-	IniRead, iniPostStart, %_scriptName%.ini, start, enabled, 1
-	IniRead, iniPostStartDelay, %_scriptName%.ini, start, delay, 120
+	IniRead, iniPostStart, %INI_FILE%, start, enabled, 1
+	IniRead, iniPostStartDelay, %INI_FILE%, start, delay, 120
 
-	IniRead, iniPostShutdown, %_scriptName%.ini, shutdown, enabled, 1
+	IniRead, iniPostShutdown, %INI_FILE%, shutdown, enabled, 1
 
-	IniRead, iniPostFreespace, %_scriptName%.ini, freespace, enabled, 1
-	IniRead, iniPostFreespaceInterval, %_scriptName%.ini, freespace, interval, 1
+	IniRead, iniPostFreespace, %INI_FILE%, freespace, enabled, 1
+	IniRead, iniPostFreespaceInterval, %INI_FILE%, freespace, interval, 1
 
-	IniRead, iniPostUptime, %_scriptName%.ini, uptimeandcpuusage, enabled, 1
-	IniRead, iniPostUptimeInterval, %_scriptName%.ini, uptimeandcpuusage, interval, 1
+	IniRead, iniPostUptime, %INI_FILE%, uptimeandcpuusage, enabled, 1
+	IniRead, iniPostUptimeInterval, %INI_FILE%, uptimeandcpuusage, interval, 1
 
 	if(A_IsCompiled) {
 		GoSub, checkShortcut
@@ -165,6 +167,17 @@ return
 Exit:
 	ExitApp
 return
+
+; loading correct ini
+; you can either use %INI_FILE% or COMPUTERNAME_%INI_FILE%
+iniFile() {
+	iniFile			:= ScriptNameNoExt() . ".ini"
+	iniFileLocal 	:= A_ComputerName . "_" . iniFile
+	if(FileExist(iniFileLocal)) {
+		iniFile := iniFileLocal
+	}
+	return iniFile
+}
 
 sendText(cText) {
 	global iniUrl

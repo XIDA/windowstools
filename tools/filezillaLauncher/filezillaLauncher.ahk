@@ -10,14 +10,7 @@ SetTitleMatchMode, 2
 Menu, tray, NoStandard
 Menu, tray, Icon, filezillaLauncher.ico,  1
 
-; loading correct ini
-; you can either use %INI_FILE% or COMPUTERNAME_%INI_FILE%
-INI_FILE					:= ScriptNameNoExt() . ".ini"
-INI_FILE_LOCAL 				:= A_ComputerName . "_" . INI_FILE
-if(FileExist(INI_FILE_LOCAL)) {
-	INI_FILE 				:= INI_FILE_LOCAL
-}
-
+INI_FILE := iniFile()
 ;M sgBox, %INI_FILE%
 
 IniRead, sitemanagerPath, %INI_FILE%, settings, sitemanagerPath
@@ -245,6 +238,17 @@ SaveSettings:
 	reload	
 return
 
+
+; loading correct ini
+; you can either use %INI_FILE% or COMPUTERNAME_%INI_FILE%
+iniFile() {
+	iniFile			:= ScriptNameNoExt() . ".ini"
+	iniFileLocal 	:= A_ComputerName . "_" . iniFile
+	if(FileExist(iniFileLocal)) {
+		iniFile := iniFileLocal
+	}
+	return iniFile
+}
 
 updateTotalSites() {
 	global totalSites
