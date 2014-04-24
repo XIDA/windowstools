@@ -13,6 +13,9 @@ del C:\Users\%USERNAME%\Pictures\Screenpresso\*.* /F /S /Q
 del "C:\Users\admin-sama\AppData\Roaming\Microsoft\Windows\Cookies\Cache\*.*" /F /S /Q
 del C:\ProgramData\Microsoft\Windows\WER\*.* /F /S /Q
 
+REM Notepad++ FTP cache
+del "C:\Users\%USERNAME%\AppData\Roaming\Notepad++\plugins\config\NppFTP\Cache" /F /S /Q
+
 REM wamp webserver temp files
 del E:\wamp\tmp\*.* /F /S /Q
 
