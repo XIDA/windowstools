@@ -6,6 +6,9 @@ SendMode Input
 
 SetWorkingDir %A_ScriptDir%
 SetTitleMatchMode, 2
+
+#include ..\..\_libs\helperFunctions.ahk
+
 Menu, tray, NoStandard
 
 INI_FILE := iniFile()
@@ -16,6 +19,7 @@ removeRegFilename 	= RemoveFromRightClickMenu.reg
 
 
 IniRead, openToExtractedFolder, %INI_FILE%, settings, openToExtractedFolder,0
+IniRead, _7zipPath, %INI_FILE%, settings, 7zipDir,
 
 IniRead, workingDir, %INI_FILE%, settings, workingDir
 StringLen, cLength, workingDir
@@ -85,7 +89,7 @@ handlePath:
 			
 			;M sgBox, 7z.exe x "%1%" -o"e:\[--Working--]" -aoa
 
-			RunWait, tools/7z.exe e "%1%" -o"%workingDir%\%OutNameNoExt%" -aoa,,hide
+			RunWait, %_7zipPath% e "%1%" -o"%workingDir%\%OutNameNoExt%" -aoa,,hide
 
 			;Run explore e:\[--Working--]\%OutNameNoExt%
 
@@ -121,19 +125,3 @@ handlePath:
 
 	ExitApp
 return
-
-; loading correct ini
-; you can either use %INI_FILE% or COMPUTERNAME_%INI_FILE%
-iniFile() {
-	iniFile			:= ScriptNameNoExt() . ".ini"
-	iniFileLocal 	:= A_ComputerName . "_" . iniFile
-	if(FileExist(iniFileLocal)) {
-		iniFile := iniFileLocal
-	}
-	return iniFile
-}
-
-ScriptNameNoExt() {
-    SplitPath, A_ScriptName,,,, ScriptNameNoExt
-    return ScriptNameNoExt
-}
