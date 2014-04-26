@@ -36,9 +36,12 @@ IniRead, 7zipPath, %INI_FILE%, general, 7zipDir,
 
 if 0 < 1
 {
-	;MsgBox, set the name of the settings ini as first parameter
-	;ExitApp
-	SETTINGS_INI_FILE	= %backupInisBaseDir%\ftp_emailcampaigns.ini
+	if(!A_IsCompiled) {
+		SETTINGS_INI_FILE	= %backupInisBaseDir%\ftp_emailcampaigns.ini
+	} else {
+		MsgBox, set the name of the settings ini as first parameter
+		ExitApp	
+	}
 	
 } else {
 	SETTINGS_INI_FILE	= %backupInisBaseDir%\%1%
