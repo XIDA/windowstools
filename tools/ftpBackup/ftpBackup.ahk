@@ -18,14 +18,12 @@ Menu, tray, add  ; Creates a separator line.
 Menu, tray, add, Reload  
 Menu, tray, add, Exit
 
-7ZIP_PATH 					= ..\_libs\bin\7z.exe
 WGET_FILE 			 		= bin\wget.exe
 LISTING_FILE		 		= .listing
 LOG_FILE_PREFIX 		 	= backup
 CLEAN_LOG_FILE_PREFIX		= cleanup
 INI_FILE 					:= iniFile()
 _lastStatusText		 		= 
-_filesDeleted				= false
 
 _wgetProcessID				=
 _7zipProcessID				=
@@ -33,12 +31,14 @@ _7zipProcessID				=
 IniRead, backupBaseDir, %INI_FILE%, general, backupBaseDir, backup
 IniRead, backupInisBaseDir, %INI_FILE%, general, backupBaseDir, ""
 IniRead, wgetParameters, %INI_FILE%, wget, parameters
+IniRead, 7zipPath, %INI_FILE%, general, 7zipDir,
+
 
 if 0 < 1
 {
 	;MsgBox, set the name of the settings ini as first parameter
 	;ExitApp
-	SETTINGS_INI_FILE	= %backupInisBaseDir%\ftp_xida_de.ini
+	SETTINGS_INI_FILE	= %backupInisBaseDir%\ftp_emailcampaigns.ini
 	
 } else {
 	SETTINGS_INI_FILE	= %backupInisBaseDir%\%1%
@@ -64,13 +64,23 @@ Gui, Show, w600 h300, ftpBackup - %folder%
 
 status("starting...")
 
+/*
+checkForFilesThatShouldBeDeleted(_backupDir, LISTING_FILE, _cleanupLogFile)
+return
+*/
+/*
+msg = 2014-04-26 15:37:16 URL: ftp://xida.de/cookie.jar [426] -> ""e:/testbackups/emailcampaigns/current/xida.de/cookie.jar"" [1]
+formattedMessage := formatLogLine(msg, false, true)
+MsgBox, %formattedMessage%
+return
+*/
+
 FileCreateDir, %_backupDir%
 Run, %WGET_FILE% %wgetParameters% -nv -o %_statusFile% --ftp-user=%ftpUser% --ftp-password=%ftpPass% --directory-prefix=%_backupDir% ftp://%ftpHost%,, Hide, _wgetProcessID
 
 
-Sleep, 3000
 
-SetTimer, checkStatus , 1000
+SetTimer, checkStatus , 100
 	
 return
 
@@ -86,7 +96,7 @@ checkStatus:
 		status("archiving...")
 		FormatTime, TimeString, , yyyyddMM_HHmmss		
 		archivePath 	=  %backupBaseDir%\%folder%\%TimeString%_%folder%.7z
-		archiveBackup(_backupDir, archivePath, 7ZIP_PATH)
+		archiveBackup(_backupDir, archivePath, 7zipPath)
 		
 		
 		status("done")
@@ -96,7 +106,6 @@ checkStatus:
 	}
 	
 	if(!ProcessExist(_wgetProcessID)) {
-		MsgBox, wtf
 		FileAppend, ERROR wget process crashed`n, %_backupLogFile%
 		ExitApp
 	}
@@ -170,21 +179,17 @@ checkForFilesThatShouldBeDeleted(directory, listingFileName, cleanupLogFile) {
 	
 	cleanupDeletedFiles(directory, listingFileName, cleanupLogFile)
 	
-	if(!_filesDeleted) {
+	if(!FileExist(cleanupLogFile)) {
 		FileAppend, No files were deleted`n, %cleanupLogFile%
 	}
 }
 
 cleanupDeletedFiles(directory, listingFileName, cleanupLogFile) {
-	global _filesDeleted
 	
 	Loop, %directory%\%listingFileName%, 0, 0
 	{
 		;M sgBox, listingfile = %A_LoopFileFullPath%
-		cFilesDeleted := cleanupDeletedFilesForDirectory(A_LoopFileDir, listingFileName, A_LoopFileFullPath, cleanupLogFile)
-		if(cFilesDeleted) {
-			_filesDeleted = true
-		}
+		cleanupDeletedFilesForDirectory(A_LoopFileDir, listingFileName, A_LoopFileFullPath, cleanupLogFile)
 		
 	}	
 	
@@ -198,6 +203,10 @@ cleanupDeletedFiles(directory, listingFileName, cleanupLogFile) {
 }
 
 cleanupDeletedFilesForDirectory(directory, listingFileName, listingFile, cleanupLogFile) {
+	global _backupDir
+	global ftpHost
+	
+	empty := " "
 	cFileContent := TF_ReadLines(listingFile)
 	;M sgBox, %cFileContent%
 	
@@ -206,19 +215,25 @@ cleanupDeletedFilesForDirectory(directory, listingFileName, listingFile, cleanup
 	{	
 		;M sgBox, A_LoopFileName %A_LoopFileName%
 		if(A_LoopFileName != listingFileName) {		
-			containsFile := TF_Count(cFileContent, A_LoopFileName)
+		
+			;there is always a space before, and a line break after the name
+			searchFor := empty . A_LoopFileName . "`n"		
+			;M sgBox, %searchFor%
+			containsFile := TF_Count(cFileContent, searchFor)
 			if(containsFile = 0) {
 				;M sgBox, Delete file! %A_LoopFileFullPath%
 				If InStr( FileExist( A_LoopFileFullPath  ), "D" )
 				{
 					;M sgBox Directory!
 					FileRemoveDir, %A_LoopFileFullPath%, 1
-					FileAppend, Deleted directory %A_LoopFileFullPath%`n, %cleanupLogFile%					
+					StringReplace, filePath, A_LoopFileFullPath, %_backupDir%\%ftpHost%
+					FileAppend, Deleted directory %filePath%`n, %cleanupLogFile%					
 				} else
 				{
 					;M sgBox FILE			
 					FileDelete, %A_LoopFileFullPath%
-					FileAppend, Deleted file %A_LoopFileFullPath%`n, %cleanupLogFile%
+					StringReplace, filePath, A_LoopFileFullPath, %_backupDir%\%ftpHost%
+					FileAppend, Deleted file %filePath%`n, %cleanupLogFile%
 				}
 				
 				filesDeleted = true
@@ -261,6 +276,7 @@ isFinished(cText) {
 formatLogLine(cText, reportListing = true, reportFullFilePath = false) {
 	global _statusFile
 	global folder
+	global _backupDir
 	global ftpHost
 	
 	if(containsSubstring(cText, "FINISHED")) {		
@@ -285,16 +301,18 @@ formatLogLine(cText, reportListing = true, reportFullFilePath = false) {
 	FoundPos := RegExMatch(cText, """(.*)\/(.*)\"" \[", outputvar) 	
 	;M sgBox, %outputvar1% %outputvar2%	
 	returnText = 
-	if(outputvar2 = .listing) {
+	
+	StringReplace, backupDirReversed, _backupDir, \, /, 1
+	if(outputvar2 = .listing) {	
 		if(reportListing) {
 			filePath = %outputvar1%
-			StringReplace, filePath, filePath, %folder%\%ftpHost% , 			
+			StringReplace, filePath, filePath, %backupDirReversed%/%ftpHost%  , 			
 			returnText = listing directory %filePath%
 		}
 	} else {
 		if(reportFullFilePath) {
-			filePath = %outputvar1%\%outputvar2%
-			StringReplace, filePath, filePath, %folder%\%ftpHost% , 			
+			filePath = %outputvar1%/%outputvar2%
+			StringReplace, filePath, filePath, %backupDirReversed%/%ftpHost% , 			
 			returnText = downloading file  %filePath%
 			
 		} else {
