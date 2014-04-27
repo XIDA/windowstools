@@ -44,11 +44,27 @@ IniRead, exectuteBeforeBackup,				%_iniFile%, beforebackup, execute, 0
 ;execute after backup
 IniRead, exectuteAfterBackup,				%_iniFile%, afterbackup, execute, 0
 
-
 ;wget settings
 IniRead, wgetParameters, 	%_iniFile%, wget, parameters
 
 ;load settings from main ini END
+
+_addRegFilename 			= registerFileExtension.reg
+
+IfNotExist, %_addRegFilename% 
+{
+	;create reg file
+	FileRead, cContents, regTemplates\%_addRegFilename%
+	cDir = %A_ScriptDir%
+	StringReplace, cDir, cDir, \ , \\, All
+	StringReplace, cContents, cContents, {currentfolder} , %cDir%, All
+	FileAppend, %cContents%, %_addRegFilename%
+	;M sgBox, %cContents%
+	RunWait, %_addRegFilename%
+	;FileDelete, %_addRegFilename%
+	ExitApp
+}
+;M sgBox, %1%
 
 ;check if there is a command line parameter
 if 0 < 1
@@ -61,7 +77,16 @@ if 0 < 1
 	}
 	
 } else {
-	_settingsIniFile		= %backupInisBaseDir%\%1%
+	;check if its a full path	
+	cPath = %1%
+	if InStr(cPath, ":")
+	{
+		_settingsIniFile		= %cPath%
+	} else 
+	{
+		_settingsIniFile		= %backupInisBaseDir%\%cPath%
+	}
+	
 }
 
 
@@ -83,9 +108,6 @@ _cleanupLogFile 			= %_backupDir%\%CLEAN_LOG_FILE_PREFIX%.log
 _statusFile					= %_backupDir%\status.log
 _statusFileCurrentLine 		:= 0
 _statusFileCheckInProgress 	:= false
-
-archivePath 		=  %backupBaseDir%\%folder%
-;archiveBackup(_backupDir, archivePath, 7zipPath)		
 
 
 if(Strlen(exectuteBeforeBackup) > 1) {

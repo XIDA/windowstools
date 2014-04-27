@@ -1,0 +1,16 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\.ftpbackup]
+@="ftpBackup"
+
+[HKEY_CLASSES_ROOT\ftpBackup]
+@="ftpBackup"
+
+[HKEY_CLASSES_ROOT\ftpBackup\DefaultIcon]
+@="{currentfolder}\\ftpBackup.exe,1"
+
+[HKEY_CLASSES_ROOT\ftpBackup\shell\open]
+@="Open File"
+
+[HKEY_CLASSES_ROOT\ftpBackup\shell\open\command]
+@="{currentfolder}\\ftpBackup.exe \"%1\""
