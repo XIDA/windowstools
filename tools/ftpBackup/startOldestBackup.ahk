@@ -32,7 +32,7 @@ Loop, %backupBaseDir%\*., 2 , 1  ; Recurse into subfolders.
 	}	
 }
 
-;we need the parent folder's name, this is the name we have to search for in the .inis
+;we need the parent folder's name, this is the name we have to search for in the .ftpbackup
 StringSplit, word_array, _oldestFile, \\, .  ; Omits periods.
 
 length 				:= word_array0
@@ -41,12 +41,12 @@ targetLength 		:= length -1
 targetFolderName	:= word_array%targetLength%
 ;M sgBox, folder name %targetFolderName%
 
-Loop, %backupInisBaseDir%\*.ini,  , 1  ; Recurse into subfolders.
+Loop, %backupInisBaseDir%\*.ftpbackup,  , 1  ; Recurse into subfolders.
 {
 	IniRead, folder, %A_LoopFileFullPath%, general, folder
 	if(folder = targetFolderName) {
 		;M sgBox, %A_LoopFileFullPath%
-		target = "%A_ScriptDir%\ftpBackup.ahk" %A_LoopFileName%
+		target = "%A_ScriptDir%\ftpBackup.exe" %A_LoopFileName%
 		;M sgBox, %target%
 		Run, %target%
 	}
