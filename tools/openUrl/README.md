@@ -16,9 +16,15 @@ You can also add a few special parameters to the url:
 * {random}: will add a random number between 11111 and 99999 to the url
 * {computername}: will add the name of the computer to the url
 
-###Example Urls###
-http://yourdomain.com/update.php?computer={computername}&date={datetime}&random={random}
+###Example urls###
+    http://yourdomain.com/update.php?computer={computername}&date={datetime}&random={random}
 
+
+
+###Alternative usage###
+Just add the urls to open as command line parameters:
+
+    openurl.exe http://www.google.com http://www.yahoo.com http://www.bing.com
 
 
 

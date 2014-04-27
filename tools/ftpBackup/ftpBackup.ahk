@@ -1,13 +1,14 @@
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
-#SingleInstance force
+#SingleInstance off
 #Persistent ;Script nicht beenden nach der Auto-Execution-Section
 
 SetWorkingDir %A_ScriptDir%
 SetTitleMatchMode, 2
 
-#include ..\_libs\helperFunctions.ahk
-#include ..\_libs\tf.ahk
+#include %A_ScriptDir%\..\_libs\helperFunctions.ahk
+#include %A_ScriptDir%\..\_libs\tf.ahk
+#include %A_ScriptDir%\..\_libs\Array.ahk
 
 Menu, tray, NoStandard
 Menu, tray, Icon, ftpBackup.ico,  1
@@ -22,114 +23,185 @@ WGET_FILE 			 		= bin\wget.exe
 LISTING_FILE		 		= .listing
 LOG_FILE_PREFIX 		 	= backup
 CLEAN_LOG_FILE_PREFIX		= cleanup
-INI_FILE 					:= iniFile()
+
+_iniFile 					:= helperIniFile()
 _lastStatusText		 		= 
 
 _wgetProcessID				=
-_7zipProcessID				=
+_7zipProcessID			    =
+
+;load settings from main ini START
+;directories
+IniRead, backupBaseDir, 					%_iniFile%, directories, backupBaseDir, backup
+IniRead, backupInisBaseDir, 				%_iniFile%, directories, backupInisBaseDir, ""
+IniRead, 7zipPath,							%_iniFile%, directories, 7zipDir,
 	
-IniRead, backupBaseDir, %INI_FILE%, general, backupBaseDir, backup
-IniRead, backupInisBaseDir, %INI_FILE%, general, backupBaseDir, ""
-IniRead, wgetParameters, %INI_FILE%, wget, parameters
-IniRead, 7zipPath, %INI_FILE%, general, 7zipDir,
+IniRead, numberOfArchivesToKeep,			%_iniFile%, settings, numberOfArchivesPerBackupToKeep, 5
+
+;execute before backup
+IniRead, exectuteBeforeBackup,				%_iniFile%, beforebackup, execute, 0
+
+;execute after backup
+IniRead, exectuteAfterBackup,				%_iniFile%, afterbackup, execute, 0
 
 
+;wget settings
+IniRead, wgetParameters, 	%_iniFile%, wget, parameters
+
+;load settings from main ini END
+
+;check if there is a command line parameter
 if 0 < 1
 {
 	if(!A_IsCompiled) {
-		SETTINGS_INI_FILE	= %backupInisBaseDir%\ftp_emailcampaigns.ini
+		_settingsIniFile	= %backupInisBaseDir%\ftp_xida_de.ini
 	} else {
 		MsgBox, set the name of the settings ini as first parameter
 		ExitApp	
 	}
 	
 } else {
-	SETTINGS_INI_FILE	= %backupInisBaseDir%\%1%
+	_settingsIniFile		= %backupInisBaseDir%\%1%
 }
 
 
-;M sgBox, %SETTINGS_INI_FILE%
+;M sgBox, %_settingsIniFile%
 
-IniRead, folder, %SETTINGS_INI_FILE%, general, folder
-IniRead, ftpHost, %SETTINGS_INI_FILE%, general, host
-IniRead, ftpUser, %SETTINGS_INI_FILE%, general, user
-IniRead, ftpPass, %SETTINGS_INI_FILE%, general, pass
+;load current backup project settings
+IniRead, folder, 			%_settingsIniFile%, general, folder
+IniRead, ftpHost, 			%_settingsIniFile%, general, host
+IniRead, ftpUser,			%_settingsIniFile%, general, user
+IniRead, ftpPass, 			%_settingsIniFile%, general, pass
 
-_guiVisible 	= false
-_backupDir		= %backupBaseDir%\%folder%\current
-_backupLogFile 	= %_backupDir%\%LOG_FILE_PREFIX%.log
-_cleanupLogFile = %_backupDir%\%CLEAN_LOG_FILE_PREFIX%.log
-_statusFile		= %_backupDir%\status.log
+IniRead, beforebackupAdd, 	%_settingsIniFile%, beforebackup, add, ""
+IniRead, afterbackupAdd, 	%_settingsIniFile%, afterbackup, add, ""
 
+_guiVisible 				= false
+_backupDir					= %backupBaseDir%\%folder%\current
+_backupLogFile 				= %_backupDir%\%LOG_FILE_PREFIX%.log
+_cleanupLogFile 			= %_backupDir%\%CLEAN_LOG_FILE_PREFIX%.log
+_statusFile					= %_backupDir%\status.log
+_statusFileCurrentLine 		:= 0
+_statusFileCheckInProgress 	:= false
+
+archivePath 		=  %backupBaseDir%\%folder%
+;archiveBackup(_backupDir, archivePath, 7zipPath)		
+
+
+if(Strlen(exectuteBeforeBackup) > 1) {
+	RunWait, %exectuteBeforeBackup%%beforebackupAdd%
+}
+	
+;setupgui
 Gui, Add, ListView, w580 r15 vLogDisplay, Created|Status
 Gui +Resize
-Gui, Show, w600 h300, ftpBackup - %folder%
+;Gui, Show, w600 h300, ftpBackup - %folder%
 
+FormatTime, timeString, ,dd-MM-yyyy HH:mm:ss	
+tipText = Backup - %folder% - started %timeString%
+Menu, Tray, Tip, %tipText%
 status("starting...")
 
-/*
-checkForFilesThatShouldBeDeleted(_backupDir, LISTING_FILE, _cleanupLogFile)
-return
-*/
-/*
-msg = 2014-04-26 15:37:16 URL: ftp://xida.de/cookie.jar [426] -> ""e:/testbackups/emailcampaigns/current/xida.de/cookie.jar"" [1]
-formattedMessage := formatLogLine(msg, false, true)
-MsgBox, %formattedMessage%
-return
-*/
-
 FileCreateDir, %_backupDir%
-Run, %WGET_FILE% %wgetParameters% -nv -o %_statusFile% --ftp-user=%ftpUser% --ftp-password=%ftpPass% --directory-prefix=%_backupDir% ftp://%ftpHost%,, Hide, _wgetProcessID
+FileDelete, %_statusFile% 
+Run, %WGET_FILE% %wgetParameters% -nv -o %_statusFile% --ftp-user=%ftpUser% --ftp-password=%ftpPass% --directory-prefix=%_backupDir% ftp://%ftpHost%,, HIDE, _wgetProcessID
 
 
-
-SetTimer, checkStatus , 100
+SetTimer, checkStatus, 1000
+SetTimer, checkIfProcessIsRunning, 10000
 	
 return
 
+checkIfProcessIsRunning:
+	if(_statusFileCheckInProgress) 
+	{
+		return
+	}
+	
+	if(!helperProcessExist(_wgetProcessID)) {
+		FileAppend, ERROR wget process crashed`n, %_backupLogFile%
+		ExitApp
+	}
+return
+
 checkStatus:
-	cText := TF_Tail(_statusFile, 2,1,1) 
+	if(_statusFileCheckInProgress) 
+	{
+		return
+	}
+	
+	_statusFileCheckInProgress := true
+
+
+	TF(_statusFile)	
+	numLines := TF_CountLines(t)
+
+	
+	Loop, %numLines%
+	{
+		i := A_INDEX
 		
+		if(i < _statusFileCurrentLine) 
+		{
+			continue
+		}
+		
+		_currentText := TF_ReadLines(t,i, i) 
+		GoSub, checkStatusFromText
+	}		
+	
+	_statusFileCurrentLine := numLines
+	
+	_statusFileCheckInProgress := false
+	
+return
+
+checkStatusFromText:
+	
 	;check if finished
-	if(isFinished(cText)) {
+	if(isFinished(_currentText)) {
 		SetTimer, checkStatus, OFF
 		checkForFilesThatShouldBeDeleted(_backupDir, LISTING_FILE, _cleanupLogFile)
 		generateReport(_statusFile, _backupLogFile)
 		
 		status("archiving...")
 		FormatTime, TimeString, , yyyyddMM_HHmmss		
-		archivePath 	=  %backupBaseDir%\%folder%\%TimeString%_%folder%.7z
-		archiveBackup(_backupDir, archivePath, 7zipPath)
+		archivePath 		=  %backupBaseDir%\%folder%
+		archivePathAndName 	=  %archivePath%\%TimeString%_%folder%.7z
+		archiveBackup(_backupDir, archivePath, 7zipPath)		
 		
+		status("checking old backups...")
+		filesDeleted := checkOldBackups(numberOfArchivesToKeep, archivePath)
+		if(filesDeleted) {
+			status("old backups deleted")
+		}
+		status("done")		
 		
-		status("done")
+		if(Strlen(exectuteAfterBackup) > 1) {
+			RunWait, %exectuteAfterBackup%%afterbackupAdd%
+		}
+			
 		Sleep, 3000		
 		ExitApp
 
 	}
-	
-	if(!ProcessExist(_wgetProcessID)) {
-		FileAppend, ERROR wget process crashed`n, %_backupLogFile%
-		ExitApp
-	}
-	
 
-	
 	;display status
-	if(_lastStatusText != cText) {
-		_lastStatusText := cText
-		formattedText	:= formatLogLine(_lastStatusText)
-		status(formattedText)
-	}
-
-	
+	if(_lastStatusText != _currentText) {
+		_lastStatusText := _currentText
+		length := Strlen(_currentText)
+		if(length > 1) {
+			formattedText	:= formatLogLine(_currentText)
+			status(formattedText)
+		}
+	}	
 return
 
 status:
 	_guiVisible := !_guiVisible
 	
 	if(_guiVisible) {
-		Gui, Show
+		Gui, Show, w600 h300, ftpBackup - %folder%
 	} else {
 		Gui, Hide
 	}
@@ -163,19 +235,38 @@ status(message) {
 	LV_ModifyCol()
 }
 
-ProcessExist(PidOrName) {
-
-	Process, Exist, %PidOrName%
-
-	return ErrorLevel
-
-}
-
 archiveBackup(backupDir, destPath, 7zippath) {
 	;MsgBox, %backupDir%
 	global _7zipProcessID
 	RunWait, %7zippath% a -t7z "%destPath%" %backupDir%\*,, Hide, _7zipProcessID
 }
+
+checkOldBackups(numberOfArchivesPerBackupToKeep, archivePath) {
+	
+	filesDeleted := false
+	
+	files := Array()
+	Loop, %archivePath%\*.7z, 0 , 0
+	{
+		files.append(A_LoopFileFullPath)   ; Store this line in the next array element.
+	}	
+	
+	files := files.reverse()
+	
+	;M sgbox, % files.join("`n")
+	
+	Loop, % files.len()
+	{
+		if(A_Index > numberOfArchivesPerBackupToKeep) {			
+			cFile := files[A_Index] 
+			;M sgbox, %cFile%
+			FileDelete, %cFile%
+			filesDeleted := true
+		}
+	}
+	return filesDeleted
+}
+
 
 checkForFilesThatShouldBeDeleted(directory, listingFileName, cleanupLogFile) {
 	FileDelete, %cleanupLogFile%
@@ -243,8 +334,7 @@ cleanupDeletedFilesForDirectory(directory, listingFileName, listingFile, cleanup
 			}
 			;MsgBox, contains? = %A_LoopFileFullPath%`n`n%containsFile%
 			;cleanupDeletedFilesForDirectory(A_LoopFileDir, listingFileName, A_LoopFileFullPath)			
-		}
-		
+		}		
 	}	
 	
 	return filesDeleted
@@ -270,23 +360,33 @@ generateReport(status_file, logfile) {
 }
 
 isFinished(cText) {
-	if(containsSubstring(cText, "Downloaded:")) {
+	if(helperContainsSubstring(cText, "Downloaded:")) {
 		return true
 	} 
 	
 	return false
 }
+
 formatLogLine(cText, reportListing = true, reportFullFilePath = false) {
 	global _statusFile
 	global folder
 	global _backupDir
 	global ftpHost
 	
-	if(containsSubstring(cText, "FINISHED")) {		
+	if(Strlen(cText) = 0) {
+		return NULL
+	}
+	
+	if(helperContainsSubstring(cText, "FINISHED")) {		
 		return "FINISHED"
 	}
 	
-	if(containsSubstring(cText, "Downloaded:")) {
+	if(helperContainsSubstring(cText, "Connection timed out")) {		
+		return "Connection timed out"
+	}
+	
+	
+	if(helperContainsSubstring(cText, "Downloaded:")) {
 		FoundPos := RegExMatch(cText, "Downloaded: ([0-9]*)", outputvar) 	
 		downloadedFilesAmount = %outputvar1%
 		;M sgBox, %downloadedFilesAmount%
@@ -301,6 +401,12 @@ formatLogLine(cText, reportListing = true, reportFullFilePath = false) {
 		return returnText
 	}	
 	
+	if(helperContainsSubstring(cText, "No such file")) {
+		FoundPos := RegExMatch(cText, "No such file (.*)", outputvar) 	
+		returnText = No such file %outputvar1%
+		return returnText
+	}
+	
 	FoundPos := RegExMatch(cText, """(.*)\/(.*)\"" \[", outputvar) 	
 	;M sgBox, %outputvar1% %outputvar2%	
 	returnText = 
@@ -309,11 +415,12 @@ formatLogLine(cText, reportListing = true, reportFullFilePath = false) {
 	if(outputvar2 = .listing) {	
 		if(reportListing) {
 			filePath = %outputvar1%
-			StringReplace, filePath, filePath, %backupDirReversed%/%ftpHost%  , 			
+			StringReplace, filePath, filePath, %backupDirReversed%/%ftpHost%  			
 			returnText = listing directory %filePath%
 		}
 	} else {
 		if(reportFullFilePath) {
+			;M sgBox, %cText%
 			filePath = %outputvar1%/%outputvar2%
 			StringReplace, filePath, filePath, %backupDirReversed%/%ftpHost% , 			
 			returnText = downloading file  %filePath%
@@ -324,14 +431,4 @@ formatLogLine(cText, reportListing = true, reportFullFilePath = false) {
 	}
 	
 	return returnText
-}
-
-containsSubstring(cText, prefix) {
-	IfInString, cText, %prefix%
-	{
-		return true
-	}
-	
-	return false
-
 }

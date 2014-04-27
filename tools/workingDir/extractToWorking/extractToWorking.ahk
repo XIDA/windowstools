@@ -11,7 +11,7 @@ SetTitleMatchMode, 2
 
 Menu, tray, NoStandard
 
-INI_FILE := iniFile()
+INI_FILE := helperIniFile()
 ;M sgBox, %INI_FILE%
 
 addRegFilename 		= AddToRightClickMenu.reg

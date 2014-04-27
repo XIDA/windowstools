@@ -1,13 +1,3 @@
-;
-; AutoHotkey Version: 1.x
-; Language:       English
-; Platform:       Win9x/NT
-; Author:         A.N.Other <myemail@nowhere.com>
-;
-; Script Function:
-;	Template script (you can customize this template by editing "ShellNew\Template.ahk" in your Windows folder)
-;
-
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 #SingleInstance force
@@ -16,40 +6,32 @@ SendMode Input  ; Recommended for new scripts due to its superior speed and reli
 SetWorkingDir %A_ScriptDir%
 SetTitleMatchMode, 2
 
+#include ..\_libs\helperFunctions.ahk
 
 Menu, tray, NoStandard
 Menu, tray, add  ; Creates a separator line.
 Menu, tray, add, Reload  
 Menu, tray, add, Exit
 
-cName := ScriptNameNoExt()
 
-
-
-Loop
+;check if there is a command line parameter
+if 0 < 1
 {
-	FileReadLine, line, %cName%.txt, %A_Index%
-	if ErrorLevel
-		break
-		
-	line := replaceSpecialStrings(line)
-	;M sgBox, 4, , Line #%A_Index% is "%line%".  Continue?
+	;if not check the txt file
+	executeUrlsFromFile()
 	
-	cUrl = %line%
-	Length := StrLen(cUrl)
+} else {
 
-	if(Length = 0) {
-		MsgBox, Url is empty!
-		ExitApp
+	;if there is are command line parameters we iterate over them
+	Loop, %0% ; for each parameter
+	{
+		param := %A_Index%
+		exectureUrlFromCommandLine(param)	
+		
 	}
-	
-	httpQuery(result,cUrl)
-	VarSetCapacity(result,-1)   
+
 }
 
-
-
-;MsgBox % result
 ExitApp
 return
 
@@ -61,11 +43,35 @@ Exit:
 	ExitApp
 return
 
-if(!A_IsCompiled) {
-	#y::
-		Send ^s
-		reload
-	return
+exectureUrlFromCommandLine(parameter) {
+	url := replaceSpecialStrings(parameter)
+	
+	httpQuery(result,url)
+	VarSetCapacity(result,-1)
+}
+
+executeUrlsFromFile() {
+	cName := helperScriptNameNoExt()
+	Loop
+	{
+		FileReadLine, line, %cName%.txt, %A_Index%
+		if ErrorLevel
+			break
+			
+		line := replaceSpecialStrings(line)
+		;M sgBox, 4, , Line #%A_Index% is "%line%".  Continue?
+		
+		cUrl = %line%
+		Length := StrLen(cUrl)
+
+		if(Length = 0) {
+			MsgBox, Url is empty!
+			ExitApp
+		}
+		
+		httpQuery(result,cUrl)
+		VarSetCapacity(result,-1)   
+	}
 }
 
 replaceSpecialStrings(line) {
@@ -81,11 +87,6 @@ replaceSpecialStrings(line) {
 	StringReplace, NewStr, NewStr, {computername}, %A_ComputerName%, All
 	
 	return NewStr
-}
-
-ScriptNameNoExt() {
-    SplitPath, A_ScriptName,,,, ScriptNameNoExt
-    return ScriptNameNoExt
 }
 
 httpQuery(byref Result, lpszUrl, POSTDATA="", HEADERS="")
