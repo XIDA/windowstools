@@ -189,8 +189,8 @@ checkStatusFromText:
 		status("archiving...")
 		FormatTime, TimeString, , yyyyddMM_HHmmss		
 		archivePath 		=  %backupBaseDir%\%folder%
-		archivePathAndName 	=  %archivePath%\%TimeString%_%folder%.7z
-		archiveBackup(_backupDir, archivePath, 7zipPath)		
+		archivePathAndName 	=  %archivePath%\%TimeString%_%folder%.7z		
+		archiveBackup(_backupDir, archivePathAndName, 7zipPath)		
 		
 		status("checking old backups...")
 		filesDeleted := checkOldBackups(numberOfArchivesToKeep, archivePath)
