@@ -49,21 +49,7 @@ IniRead, wgetParameters, 	%_iniFile%, wget, parameters
 
 ;load settings from main ini END
 
-_addRegFilename 			= registerFileExtension.reg
 
-IfNotExist, %_addRegFilename% 
-{
-	;create reg file
-	FileRead, cContents, templates\%_addRegFilename%
-	cDir = %A_ScriptDir%
-	StringReplace, cDir, cDir, \ , \\, All
-	StringReplace, cContents, cContents, {currentfolder} , %cDir%, All
-	FileAppend, %cContents%, %_addRegFilename%
-	;M sgBox, %cContents%
-	RunWait, %_addRegFilename%
-	;FileDelete, %_addRegFilename%
-	ExitApp
-}
 ;M sgBox, %1%
 
 ;check if there is a command line parameter
