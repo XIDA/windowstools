@@ -54,7 +54,7 @@ _addRegFilename 			= registerFileExtension.reg
 IfNotExist, %_addRegFilename% 
 {
 	;create reg file
-	FileRead, cContents, regTemplates\%_addRegFilename%
+	FileRead, cContents, templates\%_addRegFilename%
 	cDir = %A_ScriptDir%
 	StringReplace, cDir, cDir, \ , \\, All
 	StringReplace, cContents, cContents, {currentfolder} , %cDir%, All
