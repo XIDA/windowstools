@@ -1,0 +1,15 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\*\shell\ftpUploader]
+@="ftpUploader"
+
+[HKEY_CLASSES_ROOT\*\shell\ftpUploader\command]
+@="{currentfolder}\\ftpUploader.exe \"%1\""
+
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\ftpUploader]
+@="ftpUploader"
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\ftpUploader\command]
+@="{currentfolder}\\ftpUploader.exe"
+
