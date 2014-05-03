@@ -1,0 +1,15 @@
+# depslib dependency file v1.0
+1399112773 source:e:\[--current projects--]\[--github--]\windowstools\tools\tcpcommand\tcpsend\main.cpp
+	<windows.h>
+	<winsock2.h>
+	<stdio.h>
+	<stdlib.h>
+
+1399114724 source:e:\[--current projects--]\[--github--]\windowstools\tools\tcpsend\main.cpp
+	<windows.h>
+	<winsock2.h>
+	<stdio.h>
+	<stdlib.h>
+
+1399114329 source:e:\[--current projects--]\[--github--]\windowstools\tools\tcpsend\resources.rc
+
