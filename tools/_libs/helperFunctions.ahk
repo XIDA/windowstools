@@ -35,3 +35,10 @@ helperContainsSubstring(cText, substring) {
 	
 	return false
 }
+
+helperRandomTmpFile() {
+	Random, rand, 11111111, 99999999
+	scriptName := helperScriptNameNoExt()
+	cFile = %A_TEMP%\%scriptName%_%rand%
+	return cFile
+}
