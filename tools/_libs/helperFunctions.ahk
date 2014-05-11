@@ -42,3 +42,7 @@ helperRandomTmpFile() {
 	cFile = %A_TEMP%\%scriptName%_%rand%
 	return cFile
 }
+
+helperStripTags(html) {
+	return RegExReplace(html, "<.+?>" , "")
+}
