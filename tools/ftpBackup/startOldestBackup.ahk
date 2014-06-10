@@ -17,44 +17,78 @@ _iniFile 					:= helperIniFile("ftpBackup")
 IniRead, backupBaseDir, 	%_iniFile%, directories, backupBaseDir, backup
 IniRead, backupInisBaseDir, %_iniFile%, directories, backupInisBaseDir, ""
 
-_oldestFile 		= 0
-_oldestTimeStamp 	= 0
+; get settings file name for the oldest backup
+backup := 	getOldestBackup(backupBaseDir, getValidDirectories(backupInisBaseDir))
 
-Loop, %backupBaseDir%\*., 2 , 1  ; Recurse into subfolders.
-{
-	cName = %A_LoopFileName%
-	if(cName = "current") {
-		FileGetTime, lastModifiedTimestamp, %A_LoopFileFullPath%
-		if(_oldestTimeStamp = 0 || _oldestTimeStamp > lastModifiedTimestamp) {
-			_oldestTimeStamp := lastModifiedTimestamp 
-			_oldestFile		 :=  A_LoopFileFullPath
-		}
-	}	
-}
-
-;we need the parent folder's name, this is the name we have to search for in the .ftpbackup
-StringSplit, word_array, _oldestFile, \\, .  ; Omits periods.
-
-length 				:= word_array0
-targetLength 		:= length -1
-
-targetFolderName	:= word_array%targetLength%
-;M sgBox, folder name %targetFolderName%
-
-Loop, %backupInisBaseDir%\*.ftpbackup,  , 1  ; Recurse into subfolders.
-{
-	IniRead, folder, %A_LoopFileFullPath%, general, folder
-	if(folder = targetFolderName) {
-		;M sgBox, %A_LoopFileFullPath%
-		target = "%A_ScriptDir%\ftpBackup.exe" %A_LoopFileName%
-		;M sgBox, %target%
-		Run, %target%
-	}
-}
-
+target = "%A_ScriptDir%\ftpBackup.exe" %backup%
+; M sgBox, %target%
+Run, %target%
 ExitApp
-
 return
+
+/**
+ *	Get array key for value
+ *
+ *	@param 	array		arr			Array to search for the value
+ *	@param 	string		e			Value to search for
+ *	
+ *	@return string	If exists, the array key for the value, false otherwise
+ */
+getKeyForValue(arr, e) {
+	For k, v in arr {	
+		if(v == e) {
+			return k			
+		}
+	}
+	return false	
+}
+
+/**
+ *	Get all active backup directories from settings files (*.ftpbackup) in a directory
+ *
+ *	@param	string		dir			Directory with settings files (*.ftbackup)
+ *
+ *	@return array		Contains all backup folders from the settings files
+ *						e.g. array('test_de.ftbackup' => 'test_de', ..)
+ */
+getValidDirectories(dir) {
+	folders := []
+	Loop, % dir . "\*.ftpbackup", , 1 
+	{
+		IniRead, folder, %A_LoopFileFullPath%, general, folder	
+		folders[A_LoopFileName] := folder	
+	} 
+	return folders
+}
+
+/**
+ *	Get settings file name for the oldest backup.
+ *	Checks also if the directory is one of the active backups
+ *
+ *	@param	string		dir			Directory with backups
+ *	@param	array		folders		Contains valid directories and correct settings file name
+ *
+ *	@return string		Settings file name. e.g. 'test_de.ftbackup'.
+ */
+getOldestBackup(dir, folders) {
+	oldestFile 		:= 0,
+	oldestTimeStamp := 0
+	
+	Loop, % dir "\*.*", 2, 0
+	{
+		currentDir := A_LoopFileFullPath . "\current"
+		if(FileExist(currentDir)) {		
+			FileGetTime, lastModifiedTimestamp, % currentDir
+			
+			ini := getKeyForValue(folders, A_LoopFileName)			
+			if(ini && (oldestTimeStamp == 0 || oldestTimeStamp > lastModifiedTimestamp)) {
+				oldestTimeStamp	:= lastModifiedTimestamp,
+				oldestFile		:= ini			
+			}			
+		}
+	}
+	return oldestFile
+}
 
 Reload:
 	Reload

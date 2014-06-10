@@ -127,8 +127,8 @@ checkIfProcessIsRunning:
 	}
 	
 	if(!helperProcessExist(_wgetProcessID)) {
-		FileAppend, ERROR wget process crashed`n, %_backupLogFile%
-		ExitApp
+		;FileAppend, ERROR wget process crashed`n, %_backupLogFile%
+		;ExitApp
 	}
 return
 
@@ -169,6 +169,8 @@ checkStatusFromText:
 	;check if finished
 	if(isFinished(_currentText)) {
 		SetTimer, checkStatus, OFF
+		;M sgBox, touch file %_backupDir%
+		FileSetTime, , %_backupDir%, M, 2
 		checkForFilesThatShouldBeDeleted(_backupDir, LISTING_FILE, _cleanupLogFile)
 		generateReport(_statusFile, _backupLogFile)
 		
@@ -244,7 +246,7 @@ status(message) {
 }
 
 archiveBackup(backupDir, destPath, 7zippath) {
-	;MsgBox, %backupDir%
+	;M sgBox, %backupDir%
 	global _7zipProcessID
 	RunWait, %7zippath% a -t7z "%destPath%" %backupDir%\*,, Hide, _7zipProcessID
 }
@@ -340,7 +342,7 @@ cleanupDeletedFilesForDirectory(directory, listingFileName, listingFile, cleanup
 				
 				filesDeleted = true
 			}
-			;MsgBox, contains? = %A_LoopFileFullPath%`n`n%containsFile%
+			;M sgBox, contains? = %A_LoopFileFullPath%`n`n%containsFile%
 			;cleanupDeletedFilesForDirectory(A_LoopFileDir, listingFileName, A_LoopFileFullPath)			
 		}		
 	}	
@@ -358,7 +360,7 @@ generateReport(status_file, logfile) {
 		if ErrorLevel
 			break
 			
-		;MsgBox, Line #%A_Index% is "%line%".  Continue?
+		;M sgBox, Line #%A_Index% is "%line%".  Continue?
 		cText := formatLogLine(line, false, true)
 		if(Strlen(cText) > 0) {
 			FileAppend, %cText%`n, %logfile%
