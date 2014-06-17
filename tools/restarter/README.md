@@ -13,3 +13,5 @@ Let's say you have a program called ToolY and from time to time it freezes. Then
 	* in the second line enter the path to the exe file you want to start like C:\Program Files (x86)\ToolY\ToolY.exe
 
 
+Download Tool:
+https://github.com/XIDA/windowstools/raw/master/tools/restarter/restarter.exe
