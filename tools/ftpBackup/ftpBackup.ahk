@@ -83,6 +83,8 @@ IniRead, folder, 			%_settingsIniFile%, general, folder
 IniRead, ftpHost, 			%_settingsIniFile%, general, host
 IniRead, ftpUser,			%_settingsIniFile%, general, user
 IniRead, ftpPass, 			%_settingsIniFile%, general, pass
+IniRead, ftpPath, 			%_settingsIniFile%, general, path, ""
+
 
 IniRead, beforebackupAdd, 	%_settingsIniFile%, beforebackup, add, ""
 IniRead, afterbackupAdd, 	%_settingsIniFile%, afterbackup, add, ""
@@ -112,7 +114,8 @@ status("starting...")
 
 FileCreateDir, %_backupDir%
 FileDelete, %_statusFile% 
-Run, %WGET_FILE% %wgetParameters% -nv -o %_statusFile% --ftp-user=%ftpUser% --ftp-password=%ftpPass% --directory-prefix=%_backupDir% ftp://%ftpHost%,, HIDE, _wgetProcessID
+; MsgBox, %WGET_FILE% %wgetParameters% -nv -o %_statusFile% --ftp-user=%ftpUser% --ftp-password=%ftpPass% --directory-prefix=%_backupDir% ftp://%ftpHost%/%ftpPath%
+Run, %WGET_FILE% %wgetParameters% -nv -o %_statusFile% --ftp-user=%ftpUser% --ftp-password=%ftpPass% --directory-prefix=%_backupDir% ftp://%ftpHost%/%ftpPath%,, HIDE, _wgetProcessID
 
 
 SetTimer, checkStatus, 1000
