@@ -31,6 +31,7 @@ IniRead, iniCheckIntervalIdle, %INI_FILE%, general, checkIntervalIdle
 IniRead, iniMonitorsAmount, %INI_FILE%, general, monitorsAmount
 IniRead, iniPauseBeforeRestore, %INI_FILE%, general, pauseBeforeRestore
 IniRead, iniShowTrayTips, %INI_FILE%, general, showTrayTips
+IniRead, iniExecuteBeforeRestore, %INI_FILE%, general, executeBeforeRestore
 IniRead, iniExecuteAfterRestore, %INI_FILE%, general, executeAfterRestore
 
 SetTimer, check, %iniCheckInterval%
@@ -51,7 +52,7 @@ return
 check:
 	SetTimer, check, off
 
-	;GoSub, checkMonitorCount	
+	GoSub, checkMonitorCount	
 
 	if(checkIdle()) {
 		if(_winPosSavedSinceLastIdle = 0) {
@@ -62,7 +63,7 @@ check:
 		SetTimer, check, %iniCheckIntervalIdle%
 		
 	} else {			
-		;_winPosSavedSinceLastIdle := 0
+		_winPosSavedSinceLastIdle := 0
 		SetTimer, check, %iniCheckInterval%	
 	}
 return
@@ -82,10 +83,17 @@ checkMonitorCount:
 	SysGet, MonitorCount, MonitorCount
 	if( MonitorCount < iniMonitorsAmount) {
 		showTrayTip("restoring windows in a few seconds...")
+		SetTimer, check, off
+		
 		;M sgBox, Monitor Count, %MonitorCount%
 		Sleep, %iniPauseBeforeRestore%
 		if(_winPosSavedSinceLastIdle = 1) {
 			_winPosSavedSinceLastIdle := 0
+			
+			if( (StrLen(iniExecuteBeforeRestore) > 0) )
+			{
+				RunWait, %iniExecuteBeforeRestore%
+			}
 			
 			GoSub, restoreWinPos			
 
@@ -93,7 +101,10 @@ checkMonitorCount:
 			{
 				RunWait, %iniExecuteAfterRestore%
 			}			
-		}				
+		}		
+		
+		SetTimer, check, %iniCheckInterval%	
+		
 	}	
 return
 
@@ -109,8 +120,8 @@ saveWinPos:
 	file := FileOpen(FILE_NAME, "a")
 	if !IsObject(file)
 	{
-	MsgBox, Can not open "%FILE_NAME%" for writing.
-	Return
+		MsgBox, Can not open "%FILE_NAME%" for writing.
+		Return
 	}
 
 	; Loop through all windows on the entire system
