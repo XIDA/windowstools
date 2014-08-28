@@ -14,8 +14,18 @@ Menu, tray, add, Exit
 HIGHPERFORMANCE_GUID = 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
 POWERSAVER_GUID = a1841308-3541-4fab-bc81-f71556f20b4a
 
+commandLinevalue = %1%
+if(commandLinevalue = "high") {
+	GoSub, switchToHighPerformance
+	TrayTip, Power Scheme Changer, high performance mode
+} else if(commandLinevalue = "low") {
+	GoSub, switchToPowerSaver
+	TrayTip, Power Scheme Changer, power save mode
+}
+
 powerMode := 0
 
+GoSub, checkPowerScheme	
 GoSub, enableCheckPowerScheme
 
 return
@@ -23,7 +33,7 @@ return
 ;check every 10 seconds if the powerscheme changed
 enableCheckPowerScheme:
 	SetTimer, checkPowerScheme, 10000
-	GoSub, checkPowerScheme	
+	
 return
 
 checkPowerScheme:
