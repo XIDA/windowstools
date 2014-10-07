@@ -14,6 +14,7 @@ Run update.bat to download the tools
 **Installed tools**
 
 - cURL
+- wget
 - kpcli
 
 	
