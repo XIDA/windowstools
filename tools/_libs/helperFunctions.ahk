@@ -46,3 +46,35 @@ helperRandomTmpFile() {
 helperStripTags(html) {
 	return RegExReplace(html, "<.+?>" , "")
 }
+
+hasAutostartShortCut() {
+	SplitPath, A_ScriptName, ,,,NNE
+	ShortCutFile := A_StartUp "\" NNE ".lnk"
+	SCState := FileExist(ShortCutFile) ? 1 : 0
+	if SCState = 0
+	{
+		return false
+	}
+	
+	return true
+}
+
+addToAutostart() {
+	SplitPath, A_ScriptName, ,,,NNE
+	ShortCutFile := A_StartUp "\" NNE ".lnk"
+	SCState := FileExist(ShortCutFile) ? 1 : 0
+	if SCState = 0
+	{
+		FileCreateShortcut, %A_ScriptFullPath%, %ShortCutFile%, %A_WorkingDir%	
+	}
+}
+
+removeFromAutostart() {
+	SplitPath, A_ScriptName, ,,,NNE
+	ShortCutFile := A_StartUp "\" NNE ".lnk"
+	SCState := FileExist(ShortCutFile) ? 1 : 0
+	if SCState = 1
+	{
+		FileDelete, %ShortCutFile%
+	}
+}

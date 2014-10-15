@@ -20,6 +20,13 @@ Menu, tray, NoStandard
 Menu, tray, add, Save positions, saveWinPos
 Menu, tray, add, Restore positions, restoreWinPos
 Menu, tray, add  ; Creates a separator line.
+
+if(hasAutostartShortCut()) {
+	Menu, tray, add, Remove from autostart, removeFromAutostart
+} else {
+	Menu, tray, add, Add to autostart, addToAutostart
+}
+Menu, tray, add  ; Creates a separator line.
 Menu, tray, add, Reload  
 Menu, tray, add, Exit
 Menu, Tray, Icon, displayportHelper.ico
@@ -177,6 +184,16 @@ restoreWinPos:
 		}
 	}
 	showTrayTip("restoring windows done")
+return
+
+removeFromAutostart:
+	removeFromAutostart()
+	reload
+return
+
+addToAutostart:
+	addToAutostart()
+	reload
 return
 
 Reload:
