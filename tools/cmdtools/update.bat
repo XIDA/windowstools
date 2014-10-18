@@ -8,3 +8,5 @@ bin\7za.exe e tools\curl.zip -otools\curl -aoa
 del tools\curl.zip /F /Q
 
 bin\curl -L -o tools\wget.exe http://users.ugent.be/~bpuype/cgi-bin/fetch.pl?dl=wget/wget.exe
+
+bin\curl -L -J -o tools\fnr.exe http://download-codeplex.sec.s-msft.com/Download/Release?ProjectName=findandreplace&DownloadId=851369&FileTime=130458305187130000&Build=20941

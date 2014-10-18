@@ -5,7 +5,7 @@ Downloads well known command line tools and adds them to the path
 
 
 ###Install###
-Run install.bat -> adds the path to the Windows PATH variable
+Add the tools folder to your PATH
 Run update.bat to download the tools
 
 ----------
@@ -16,5 +16,6 @@ Run update.bat to download the tools
 - cURL
 - wget
 - kpcli
+- [Find and replace](http://findandreplace.codeplex.com)
 
 	
